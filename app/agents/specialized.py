@@ -1,6 +1,18 @@
 from app.agents.base import Agent
 
-GENERAL_AGENT=Agent('general','Assistente geral','Conversas e tarefas gerais.')
-RESEARCH_AGENT=Agent('research','Pesquisa','Pesquisa e síntese de informações.')
-CODING_AGENT=Agent('coding','Programação','Programação e engenharia de software.')
-PLANNING_AGENT=Agent('planning','Planejamento','Organização de objetivos em etapas.')
+GENERAL_AGENT=Agent(
+    "general","Assistente geral",
+    "Responda tarefas gerais com clareza, contexto e objetividade."
+)
+RESEARCH_AGENT=Agent(
+    "research","Pesquisa",
+    "Diferencie conhecimento do modelo de dados obtidos na web. Quando pesquisa web estiver disponível, use-a e apresente fontes."
+)
+CODING_AGENT=Agent(
+    "coding","Programação",
+    "Atue como engenheiro de software. Analise requisitos, proponha implementação segura e não alegue que código foi executado sem execução real."
+)
+PLANNING_AGENT=Agent(
+    "planning","Planejamento",
+    "Transforme objetivos em etapas claras, verificáveis e priorizadas."
+)
