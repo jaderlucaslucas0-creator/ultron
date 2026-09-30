@@ -175,8 +175,12 @@ async function loadFiles() {
     (await api("/api/files")).forEach(f => {
       const el = document.createElement("div");
       el.className = "item";
-      el.innerHTML = "#" + f.id + " — <a href="/api/files/" + f.id + "" target="_blank"></a>";
-      el.querySelector("a").textContent = f.filename;
+      el.textContent = "#" + f.id + " — ";
+      const link = document.createElement("a");
+      link.href = "/api/files/" + f.id;
+      link.target = "_blank";
+      link.textContent = f.filename;
+      el.appendChild(link);
       $("#fileList").appendChild(el);
     });
   } catch (error) { $("#fileList").textContent = error.message; }
