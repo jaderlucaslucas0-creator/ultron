@@ -1,1 +1,50 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ULTRON V3</title><link rel="stylesheet" href="/css/app.css"></head><body><div class="shell"><header><div class="brand"><span class="orb">U</span><div><h1>ULTRON</h1><small>Personal AI · V3</small></div></div><span class="status">● ONLINE</span></header><main><aside><h3>PAINEL</h3><button data-panel="chat">💬 Chat</button><button data-panel="research">🌐 Pesquisa Web</button><button data-panel="vision">👁️ Visão</button><button data-panel="files">📁 Arquivos</button><button data-panel="automations">⚡ Automações</button><button data-panel="memory">🧠 Memória</button><button data-panel="skills">🛠 Skills</button><button data-panel="system">⚙ Sistema</button><div class="item">🔓 Modo sem API key<br><small>Chat offline/local e voz do navegador.</small></div></aside><section class="panel"><div id="chat" class="view active"><div id="messages" class="messages"><div class="msg bot">ULTRON online. Modo sem API key ativo.</div></div><div class="voicebar"><button id="recordBtn" type="button">🎙️ FALAR</button><select id="voice"><option>alloy</option><option>echo</option><option>fable</option><option>onyx</option><option>nova</option><option>shimmer</option></select><label>Velocidade <input id="speed" type="range" min=".5" max="2" step=".1" value="1"></label><button id="stopSpeak" type="button">🔇 PARAR</button></div><form id="chatForm"><input id="message" autocomplete="off" placeholder="Fale com o ULTRON..."><button>ENVIAR</button></form></div><div id="research" class="view"><h2>Pesquisa Web</h2><form id="researchForm"><input id="researchInput" placeholder="O que você quer pesquisar?"><button>Pesquisar</button></form><div id="researchResult" class="item"></div></div><div id="vision" class="view"><h2>Visão</h2><form id="visionForm"><input id="visionFile" type="file" accept="image/*"><input id="visionPrompt" value="Descreva e analise esta imagem em português brasileiro."><button>Analisar</button></form><div id="visionResult" class="item"></div></div><div id="files" class="view"><h2>Arquivos</h2><form id="fileForm"><input id="fileInput" type="file"><button>Enviar arquivo</button></form><div id="fileList"></div></div><div id="automations" class="view"><h2>Automações</h2><form id="automationForm"><input id="automationName" placeholder="Nome"><input id="automationSchedule" placeholder="Agendamento (ex.: diário 09:00)"><button>Criar</button></form><div id="automationList"></div></div><div id="memory" class="view"><h2>Memória</h2><form id="memoryForm"><input id="memoryInput" placeholder="Informação para lembrar"><button>Salvar</button></form><div id="memoryList"></div></div><div id="skills" class="view"><h2>Skills</h2><div id="skillList"></div></div><div id="system" class="view"><h2>Status</h2><pre id="systemData">Carregando...</pre></div></section></main></div><script src="/js/app.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HERMES — Assistente IA</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="shell">
+<header>
+  <div class="brand"><span class="orb">H</span><div><h1>HERMES</h1><small>ASSISTENTE PESSOAL · LOCAL</small></div></div>
+  <span class="status">● ONLINE · SEM API</span>
+</header>
+<main>
+<aside>
+  <h3>PAINEL</h3>
+  <button data-panel="chat">💬 Conversa</button>
+  <button data-panel="research">🌐 Pesquisa</button>
+  <button data-panel="memory">🧠 Memória</button>
+  <button data-panel="skills">🛠 Skills</button>
+  <button data-panel="files">📁 Arquivos</button>
+  <button data-panel="automations">⚡ Automações</button>
+  <button data-panel="system">⚙ Sistema</button>
+  <div class="item tip"><b>Modo independente</b><br><small>O Hermes não exige OPENAI_API_KEY. Voz usa os recursos do navegador.</small></div>
+</aside>
+<section class="panel">
+<div id="chat" class="view active">
+  <div id="messages" class="messages">
+    <div class="msg bot">Hermes online. Pode falar comigo por texto ou pelo microfone.</div>
+  </div>
+  <div class="voicebar">
+    <button id="recordBtn">🎙️ FALAR</button>
+    <label>Velocidade <input id="speed" type="range" min=".6" max="1.8" step=".1" value="1"></label>
+    <button id="stopSpeak">🔇 PARAR</button>
+  </div>
+  <form id="chatForm"><input id="message" autocomplete="off" placeholder="Digite um comando para o Hermes..."><button>ENVIAR</button></form>
+</div>
+<div id="research" class="view"><h2>Pesquisa Web</h2><p class="muted">Pesquisa pública, sem chave de IA.</p><form id="researchForm"><input id="researchInput" placeholder="O que pesquisar?"><button>Pesquisar</button></form><pre id="researchResult" class="result"></pre></div>
+<div id="memory" class="view"><h2>Memória</h2><form id="memoryForm"><input id="memoryInput" placeholder="O que o Hermes deve lembrar?"><button>Salvar</button></form><div id="memoryList"></div></div>
+<div id="skills" class="view"><h2>Skills</h2><div id="skillList"></div></div>
+<div id="files" class="view"><h2>Arquivos</h2><form id="fileForm"><input id="fileInput" type="file"><button>Enviar</button></form><div id="fileList"></div></div>
+<div id="automations" class="view"><h2>Automações</h2><form id="automationForm"><input id="automationName" placeholder="Nome"><input id="automationSchedule" placeholder="Ex.: diário 09:00"><button>Criar</button></form><div id="automationList"></div></div>
+<div id="system" class="view"><h2>Sistema</h2><pre id="systemData" class="result">Carregando...</pre></div>
+</section>
+</main>
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>
