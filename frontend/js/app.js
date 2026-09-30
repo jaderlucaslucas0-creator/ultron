@@ -18,8 +18,8 @@ document.querySelectorAll("aside button[data-panel]").forEach(b=>b.onclick=()=>{
   if(b.dataset.panel==="files")loadFiles();
   if(b.dataset.panel==="automations")loadAutomations();
 });
-let recorder,chunks=[];
-$("#recordBtn").onclick=async()=>{
+let recorder,chunks=[];\nlet recognition=null;
+$("#recordBtn").onclick=async()=>{\n  if(window.SpeechRecognition||window.webkitSpeechRecognition){\n    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;\n    if(recognition){recognition.stop();recognition=null;$("#recordBtn").textContent="🎙️ FALAR";return}\n    recognition=new SR();recognition.lang="pt-BR";recognition.interimResults=false;recognition.continuous=false;\n    recognition.onresult=e=>{$("#message").value=e.results[0][0].transcript;$("#chatForm").requestSubmit()};\n    recognition.onerror=()=>{addMsg("Não foi possível reconhecer a voz neste navegador.","error");recognition=null;$("#recordBtn").textContent="🎙️ FALAR"};\n    recognition.onend=()=>{recognition=null;$("#recordBtn").textContent="🎙️ FALAR"};\n    recognition.start();$("#recordBtn").textContent="⏹️ PARAR";return\n  }
   if(recorder?.state==="recording"){recorder.stop();return}
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
@@ -38,8 +38,8 @@ $("#chatForm").onsubmit=async e=>{
   try{const d=await api("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t})});addMsg(d.answer,"bot");speak(d.answer)}
   catch(e){addMsg(e.message,"error")}
 };
-async function speak(text){try{const blob=await api("/api/voice/speak",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,voice:$("#voice").value,speed:Number($("#speed").value)})});const a=new Audio(URL.createObjectURL(blob));window.ultronAudio=a;a.onended=()=>URL.revokeObjectURL(a.src);await a.play()}catch(e){addMsg("Voz indisponível: "+e.message,"error")}}
-$("#stopSpeak").onclick=()=>window.ultronAudio?.pause();
+async function speak(text){\n  if("speechSynthesis" in window){\n    window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="pt-BR";u.rate=Number($("#speed").value);\n    const voices=window.speechSynthesis.getVoices();const pt=voices.find(v=>v.lang?.toLowerCase().startsWith("pt-br"))||voices.find(v=>v.lang?.toLowerCase().startsWith("pt"));if(pt)u.voice=pt;\n    window.speechSynthesis.speak(u);return\n  }\n  try{const blob=await api("/api/voice/speak",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,voice:$("#voice").value,speed:Number($("#speed").value)})});const a=new Audio(URL.createObjectURL(blob));window.ultronAudio=a;a.onended=()=>URL.revokeObjectURL(a.src);await a.play()}catch(e){addMsg("Voz indisponível neste navegador.","error")}\n}
+$("#stopSpeak").onclick=()=>{window.speechSynthesis?.cancel();window.ultronAudio?.pause()};
 function addMsg(t,c){const d=document.createElement("div");d.className="msg "+c;d.textContent=t;$("#messages").appendChild(d);$("#messages").scrollTop=$("#messages").scrollHeight}
 $("#researchForm").onsubmit=async e=>{e.preventDefault();const q=$("#researchInput").value.trim();if(!q)return;$("#researchResult").textContent="Pesquisando...";try{const d=await api("/api/research",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:q})});$("#researchResult").textContent=d.answer}catch(err){$("#researchResult").textContent=err.message}};
 $("#visionForm").onsubmit=async e=>{e.preventDefault();const f=$("#visionFile").files[0];if(!f)return;$("#visionResult").textContent="Analisando imagem...";try{const fd=new FormData();fd.append("file",f);fd.append("prompt",$("#visionPrompt").value);const d=await api("/api/vision/analyze",{method:"POST",body:fd});$("#visionResult").textContent=d.answer}catch(err){$("#visionResult").textContent=err.message}};
