@@ -9,13 +9,13 @@ START_TIME = time.time()
 
 @router.get("/health")
 def health():
-    return {"status": "online", "service": "HERMES", "api_key_required": False}
+    return {"status": "online", "service": "Open UltrON", "api_key_required": False}
 
 @router.get("/api/status", dependencies=[Depends(require_api_key)])
 def status(db=Depends(get_db)):
     return {
         "status": "online",
-        "service": "HERMES",
+        "service": "Open UltrON",
         "version": "1.0.0-local",
         "uptime_seconds": int(time.time() - START_TIME),
         "memory_count": db.query(Memory).count(),
