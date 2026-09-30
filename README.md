@@ -1,102 +1,34 @@
-# 🤖 ULTRON V2
+# ULTRON V3
 
-MVP do assistente pessoal de IA ULTRON.
+Assistente pessoal de IA modular, preparado para rodar no Render.
 
-## MVP implementado
+## Fase 3
+- Pesquisa web via ferramenta de busca do modelo.
+- Visão: análise de imagens por IA.
+- Upload e download de arquivos persistidos no banco.
+- Painel de automações com criação, ativação/pausa e exclusão.
+- Fase 1 mantida: FastAPI, chat, memória, Skills, logs, PostgreSQL/SQLite, health e Render.
+- Fase 2 mantida: STT, TTS e microfone no navegador.
 
-- FastAPI modular
-- Interface web responsiva
-- Chat com modelo compatível com OpenAI
-- Memória persistente
-- Sistema inicial de Skills
-- Skill de calculadora segura
-- Orquestrador
-- PostgreSQL em produção e SQLite local
-- API REST
-- Health check
-- Autenticação opcional por Bearer token
-- Configuração para Render
-- Separação entre backend e frontend
-
-## Estrutura
-
-~~~text
-main.py
-app/
-  api/
-  brain/
-  core/
-  database/
-  skills/
-frontend/
-requirements.txt
-render.yaml
-.env.example
-README.md
-~~~
-
-## Executar localmente
-
-Python 3.11+ recomendado.
-
-~~~bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# Linux/macOS
-source .venv/bin/activate
-pip install -r requirements.txt
-copy .env.example .env
-uvicorn main:app --reload
-~~~
-
-Abra http://127.0.0.1:8000.
-
-Configure OPENAI_API_KEY no .env para conversar com o modelo. Se ULTRON_API_KEY for configurada, informe o token no campo API Key da interface.
-
-## Variáveis de ambiente
-
-- OPENAI_API_KEY
-- OPENAI_MODEL
-- OPENAI_BASE_URL
-- DATABASE_URL
-- ULTRON_API_KEY
-- CORS_ORIGINS
-
-Nunca envie .env para o GitHub.
-
-## API
-
-- GET /health
-- GET /api/status
-- POST /api/chat
-- GET /api/memory
-- POST /api/memory
-- DELETE /api/memory/{memory_id}
-- GET /api/skills
+## Variáveis
+Configure no Render:
+- `OPENAI_API_KEY`
+- `DATABASE_URL` para PostgreSQL em produção
+- `ULTRON_API_KEY` opcional
+- `RESEARCH_MODEL` e `VISION_MODEL` se quiser trocar os modelos
 
 ## Render
+Build Command:
+`pip install -r requirements.txt`
 
-O arquivo render.yaml prepara um Web Service e um PostgreSQL.
+Start Command:
+`uvicorn main:app --host 0.0.0.0 --port $PORT`
 
-1. Conecte o repositório ao Render.
-2. Configure OPENAI_API_KEY.
-3. Opcionalmente configure OPENAI_BASE_URL e ULTRON_API_KEY.
-4. Faça o deploy.
-5. Teste /health.
-6. Abra a URL do serviço.
+Health:
+`/health`
 
-O projeto não usa polling artificial, requisições falsas ou mecanismos para impedir suspensão. Para disponibilidade contínua, use uma infraestrutura/plano do Render que mantenha o Web Service ativo.
+## Desenvolvimento
+`pip install -r requirements.txt`
+`uvicorn main:app --reload`
 
-## Arquitetura
-
-O frontend chama somente a API. O cérebro, memória, Skills e banco ficam no backend. Isso permite futuramente conectar Android, Windows e outros clientes sem reconstruir o núcleo.
-
-## Próximas fases
-
-Somente depois de validar este MVP:
-
-1. Voz, STT, TTS e Wake Word.
-2. Pesquisa web, arquivos, visão e automações.
-3. Agentes especializados e plugins.
-4. Aplicativos Android e Windows.
+Nunca coloque chaves de API no código ou no Git.
