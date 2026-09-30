@@ -1,53 +1,218 @@
-const $=s=>document.querySelector(s);
-const key=()=>localStorage.getItem("ultron_api_key")||"";
-$("#apiKey").value=key();
-$("#apiKey").onchange=e=>localStorage.setItem("ultron_api_key",e.target.value.trim());
-function headers(){const h={};if(key())h.Authorization="Bearer "+key();return h}
-async function api(path,opt={}){
-  opt.headers={...headers(),...(opt.headers||{})};
-  const r=await fetch(path,opt);
-  if(!r.ok){let m="Erro";try{m=(await r.json()).detail||m}catch{}throw Error(m)}
-  return r.headers.get("content-type")?.includes("application/json")?r.json():r.blob()
+const $ = (s) => document.querySelector(s);
+const apiKey = () => localStorage.getItem("hermes_api_key") || "";
+
+function headers() {
+  const h = {};
+  if (apiKey()) h.Authorization = "Bearer " + apiKey();
+  return h;
 }
-document.querySelectorAll("aside button[data-panel]").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-  $("#"+b.dataset.panel).classList.add("active");
-  if(b.dataset.panel==="memory")loadMemory();
-  if(b.dataset.panel==="skills")loadSkills();
-  if(b.dataset.panel==="system")loadSystem();
-  if(b.dataset.panel==="files")loadFiles();
-  if(b.dataset.panel==="automations")loadAutomations();
+
+async function api(path, options = {}) {
+  options.headers = { ...headers(), ...(options.headers || {}) };
+  const response = await fetch(path, options);
+  if (!response.ok) {
+    let message = "Erro " + response.status;
+    try { message = (await response.json()).detail || message; } catch {}
+    throw new Error(message);
+  }
+  return response.headers.get("content-type")?.includes("application/json")
+    ? response.json() : response.blob();
+}
+
+function addMsg(text, type) {
+  const el = document.createElement("div");
+  el.className = "msg " + type;
+  el.textContent = text;
+  $("#messages").appendChild(el);
+  $("#messages").scrollTop = $("#messages").scrollHeight;
+}
+
+document.querySelectorAll("aside button[data-panel]").forEach((button) => {
+  button.onclick = () => {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    $("#" + button.dataset.panel).classList.add("active");
+    if (button.dataset.panel === "memory") loadMemory();
+    if (button.dataset.panel === "skills") loadSkills();
+    if (button.dataset.panel === "files") loadFiles();
+    if (button.dataset.panel === "automations") loadAutomations();
+    if (button.dataset.panel === "system") loadSystem();
+  };
 });
-let recorder,chunks=[];\nlet recognition=null;
-$("#recordBtn").onclick=async()=>{\n  if(window.SpeechRecognition||window.webkitSpeechRecognition){\n    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;\n    if(recognition){recognition.stop();recognition=null;$("#recordBtn").textContent="🎙️ FALAR";return}\n    recognition=new SR();recognition.lang="pt-BR";recognition.interimResults=false;recognition.continuous=false;\n    recognition.onresult=e=>{$("#message").value=e.results[0][0].transcript;$("#chatForm").requestSubmit()};\n    recognition.onerror=()=>{addMsg("Não foi possível reconhecer a voz neste navegador.","error");recognition=null;$("#recordBtn").textContent="🎙️ FALAR"};\n    recognition.onend=()=>{recognition=null;$("#recordBtn").textContent="🎙️ FALAR"};\n    recognition.start();$("#recordBtn").textContent="⏹️ PARAR";return\n  }
-  if(recorder?.state==="recording"){recorder.stop();return}
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    recorder=new MediaRecorder(stream);chunks=[];
-    recorder.ondataavailable=e=>chunks.push(e.data);
-    recorder.onstop=async()=>{
-      stream.getTracks().forEach(t=>t.stop());$("#recordBtn").textContent="🎙️ FALAR";
-      try{const fd=new FormData();fd.append("file",new Blob(chunks,{type:"audio/webm"}),"ultron.webm");const d=await api("/api/voice/transcribe",{method:"POST",body:fd});$("#message").value=d.text;$("#chatForm").requestSubmit()}
-      catch(e){addMsg(e.message,"error")}
-    };
-    recorder.start();$("#recordBtn").textContent="⏹️ PARAR";
-  }catch(e){addMsg("Não foi possível acessar o microfone.","error")}
+
+$("#chatForm").onsubmit = async (event) => {
+  event.preventDefault();
+  const input = $("#message");
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg(text, "user");
+  input.value = "";
+  try {
+    const data = await api("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message: text})
+    });
+    addMsg(data.answer, "bot");
+    speak(data.answer);
+  } catch (error) {
+    addMsg(error.message, "error");
+  }
 };
-$("#chatForm").onsubmit=async e=>{
-  e.preventDefault();const i=$("#message"),t=i.value.trim();if(!t)return;addMsg(t,"user");i.value="";
-  try{const d=await api("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t})});addMsg(d.answer,"bot");speak(d.answer)}
-  catch(e){addMsg(e.message,"error")}
+
+let recognition = null;
+$("#recordBtn").onclick = () => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    addMsg("Seu navegador não oferece reconhecimento de voz. Use Chrome ou Edge.", "error");
+    return;
+  }
+  if (recognition) {
+    recognition.stop();
+    recognition = null;
+    $("#recordBtn").textContent = "🎙️ FALAR";
+    return;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = "pt-BR";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.onstart = () => $("#recordBtn").textContent = "⏹️ PARAR";
+  recognition.onresult = (event) => {
+    $("#message").value = event.results[0][0].transcript;
+    $("#chatForm").requestSubmit();
+  };
+  recognition.onerror = () => addMsg("Não consegui reconhecer sua voz.", "error");
+  recognition.onend = () => {
+    recognition = null;
+    $("#recordBtn").textContent = "🎙️ FALAR";
+  };
+  recognition.start();
 };
-async function speak(text){\n  if("speechSynthesis" in window){\n    window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="pt-BR";u.rate=Number($("#speed").value);\n    const voices=window.speechSynthesis.getVoices();const pt=voices.find(v=>v.lang?.toLowerCase().startsWith("pt-br"))||voices.find(v=>v.lang?.toLowerCase().startsWith("pt"));if(pt)u.voice=pt;\n    window.speechSynthesis.speak(u);return\n  }\n  try{const blob=await api("/api/voice/speak",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,voice:$("#voice").value,speed:Number($("#speed").value)})});const a=new Audio(URL.createObjectURL(blob));window.ultronAudio=a;a.onended=()=>URL.revokeObjectURL(a.src);await a.play()}catch(e){addMsg("Voz indisponível neste navegador.","error")}\n}
-$("#stopSpeak").onclick=()=>{window.speechSynthesis?.cancel();window.ultronAudio?.pause()};
-function addMsg(t,c){const d=document.createElement("div");d.className="msg "+c;d.textContent=t;$("#messages").appendChild(d);$("#messages").scrollTop=$("#messages").scrollHeight}
-$("#researchForm").onsubmit=async e=>{e.preventDefault();const q=$("#researchInput").value.trim();if(!q)return;$("#researchResult").textContent="Pesquisando...";try{const d=await api("/api/research",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:q})});$("#researchResult").textContent=d.answer}catch(err){$("#researchResult").textContent=err.message}};
-$("#visionForm").onsubmit=async e=>{e.preventDefault();const f=$("#visionFile").files[0];if(!f)return;$("#visionResult").textContent="Analisando imagem...";try{const fd=new FormData();fd.append("file",f);fd.append("prompt",$("#visionPrompt").value);const d=await api("/api/vision/analyze",{method:"POST",body:fd});$("#visionResult").textContent=d.answer}catch(err){$("#visionResult").textContent=err.message}};
-$("#fileForm").onsubmit=async e=>{e.preventDefault();const f=$("#fileInput").files[0];if(!f)return;try{const fd=new FormData();fd.append("file",f);await api("/api/files",{method:"POST",body:fd});$("#fileInput").value="";loadFiles()}catch(err){alert(err.message)}};
-async function loadFiles(){try{$("#fileList").innerHTML="";(await api("/api/files")).forEach(f=>{const d=document.createElement("div");d.className="item";d.innerHTML=`#${f.id} <a href="/api/files/${f.id}" target="_blank">${f.filename}</a> — ${f.size} bytes`;$("#fileList").appendChild(d)})}catch(e){$("#fileList").textContent=e.message}}
-$("#automationForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/automations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:$("#automationName").value,schedule:$("#automationSchedule").value,enabled:true})});e.target.reset();loadAutomations()}catch(err){alert(err.message)}};
-async function loadAutomations(){try{$("#automationList").innerHTML="";(await api("/api/automations")).forEach(a=>{const d=document.createElement("div");d.className="item";d.textContent="#"+a.id+" "+a.name+" — "+a.schedule+" — "+(a.enabled?"ATIVA":"PAUSADA");$("#automationList").appendChild(d)})}catch(e){$("#automationList").textContent=e.message}}
-$("#memoryForm").onsubmit=async e=>{e.preventDefault();const i=$("#memoryInput");if(!i.value.trim())return;try{await api("/api/memory",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:i.value})});i.value="";loadMemory()}catch(e){alert(e.message)}};
-async function loadMemory(){try{$("#memoryList").innerHTML="";(await api("/api/memory")).forEach(m=>{const d=document.createElement("div");d.className="item";d.textContent="#"+m.id+" "+m.content;$("#memoryList").appendChild(d)})}catch(e){$("#memoryList").textContent=e.message}}
-async function loadSkills(){try{$("#skillList").innerHTML="";(await api("/api/skills")).forEach(s=>{const d=document.createElement("div");d.className="item";d.textContent=s.name+" — "+s.description;$("#skillList").appendChild(d)})}catch(e){$("#skillList").textContent=e.message}}
-async function loadSystem(){try{$("#systemData").textContent=JSON.stringify(await api("/api/status"),null,2)}catch(e){$("#systemData").textContent=e.message}}
+
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "pt-BR";
+  utterance.rate = Number($("#speed").value);
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => v.lang?.toLowerCase() === "pt-br") ||
+                voices.find(v => v.lang?.toLowerCase().startsWith("pt"));
+  if (voice) utterance.voice = voice;
+  speechSynthesis.speak(utterance);
+}
+
+$("#stopSpeak").onclick = () => speechSynthesis?.cancel();
+
+$("#researchForm").onsubmit = async (event) => {
+  event.preventDefault();
+  $("#researchResult").textContent = "Pesquisando...";
+  try {
+    const data = await api("/api/research", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({query: $("#researchInput").value.trim()})
+    });
+    $("#researchResult").textContent = data.answer;
+  } catch (error) { $("#researchResult").textContent = error.message; }
+};
+
+$("#memoryForm").onsubmit = async (event) => {
+  event.preventDefault();
+  const input = $("#memoryInput");
+  if (!input.value.trim()) return;
+  try {
+    await api("/api/memory", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({content: input.value.trim()})
+    });
+    input.value = "";
+    loadMemory();
+  } catch (error) { alert(error.message); }
+};
+
+async function loadMemory() {
+  try {
+    $("#memoryList").innerHTML = "";
+    (await api("/api/memory")).forEach(m => {
+      const el = document.createElement("div");
+      el.className = "item";
+      el.textContent = "#" + m.id + " — " + m.content;
+      $("#memoryList").appendChild(el);
+    });
+  } catch (error) { $("#memoryList").textContent = error.message; }
+}
+
+async function loadSkills() {
+  try {
+    $("#skillList").innerHTML = "";
+    (await api("/api/skills")).forEach(s => {
+      const el = document.createElement("div");
+      el.className = "item";
+      el.textContent = s.name + " — " + s.description;
+      $("#skillList").appendChild(el);
+    });
+  } catch (error) { $("#skillList").textContent = error.message; }
+}
+
+$("#fileForm").onsubmit = async (event) => {
+  event.preventDefault();
+  const file = $("#fileInput").files[0];
+  if (!file) return;
+  try {
+    const form = new FormData();
+    form.append("file", file);
+    await api("/api/files", {method: "POST", body: form});
+    $("#fileInput").value = "";
+    loadFiles();
+  } catch (error) { alert(error.message); }
+};
+
+async function loadFiles() {
+  try {
+    $("#fileList").innerHTML = "";
+    (await api("/api/files")).forEach(f => {
+      const el = document.createElement("div");
+      el.className = "item";
+      el.innerHTML = "#" + f.id + " — <a href="/api/files/" + f.id + "" target="_blank"></a>";
+      el.querySelector("a").textContent = f.filename;
+      $("#fileList").appendChild(el);
+    });
+  } catch (error) { $("#fileList").textContent = error.message; }
+}
+
+$("#automationForm").onsubmit = async (event) => {
+  event.preventDefault();
+  try {
+    await api("/api/automations", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        name: $("#automationName").value,
+        schedule: $("#automationSchedule").value,
+        enabled: true
+      })
+    });
+    event.target.reset();
+    loadAutomations();
+  } catch (error) { alert(error.message); }
+};
+
+async function loadAutomations() {
+  try {
+    $("#automationList").innerHTML = "";
+    (await api("/api/automations")).forEach(a => {
+      const el = document.createElement("div");
+      el.className = "item";
+      el.textContent = "#" + a.id + " " + a.name + " — " + a.schedule + " — " + (a.enabled ? "ATIVA" : "PAUSADA");
+      $("#automationList").appendChild(el);
+    });
+  } catch (error) { $("#automationList").textContent = error.message; }
+}
+
+async function loadSystem() {
+  try {
+    $("#systemData").textContent = JSON.stringify(await api("/api/status"), null, 2);
+  } catch (error) { $("#systemData").textContent = error.message; }
+}
