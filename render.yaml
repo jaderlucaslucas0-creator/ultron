@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ultron
+    name: hermes
     runtime: python
     plan: starter
     buildCommand: pip install -r requirements.txt
@@ -11,9 +11,7 @@ services:
         fromDatabase:
           name: ultron-db
           property: connectionString
-      - key: OPENAI_MODEL
-        value: gpt-4o-mini
-      - key: ULTRON_API_KEY
+      - key: HERMES_API_KEY
         sync: false
       - key: CORS_ORIGINS
         value: "*"
