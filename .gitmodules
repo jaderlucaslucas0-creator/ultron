@@ -1,0 +1,4 @@
+[submodule "openjarvis"]
+	path = openjarvis
+	url = https://github.com/open-jarvis/OpenJarvis.git
+	branch = main
