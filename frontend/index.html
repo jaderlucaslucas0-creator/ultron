@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ULTRON AI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#02050a;color:#d9f7ff;font-family:Arial,sans-serif;height:100vh;display:flex;align-items:center;justify-content:center}main{width:min(1000px,94vw);height:min(760px,92vh);border:1px solid #0b8eaa;border-radius:24px;background:linear-gradient(145deg,#06121b,#020408);box-shadow:0 0 45px #003d52;padding:24px;display:flex;flex-direction:column}.brand{text-align:center;color:#39dfff;font-size:32px;font-weight:bold;letter-spacing:8px;text-shadow:0 0 20px #00d9ff}.status{text-align:center;color:#65ffb1;font-size:13px;margin:8px}.chat{flex:1;overflow:auto;padding:20px}.msg{max-width:80%;padding:14px 18px;border-radius:16px;margin:10px 0;white-space:pre-wrap}.user{margin-left:auto;background:#07506a}.bot{background:#0b1720;border:1px solid #12485a}.bar{display:flex;gap:10px}.bar input{flex:1;background:#02070b;border:1px solid #12637a;color:white;padding:15px;border-radius:14px;outline:none}.bar button{background:#0bb9df;border:0;border-radius:14px;padding:0 24px;font-weight:bold;cursor:pointer}
+</style></head><body><main><div class="brand">ULTRON</div><div class="status">● ONLINE · LOCAL-FIRST</div><section id="chat" class="chat"><div class="msg bot">Sistema iniciado. Como posso ajudar?</div></section><form id="form" class="bar"><input id="input" autocomplete="off" placeholder="Fale com o ULTRON..."><button>ENVIAR</button></form></main>
+<script>
+const chat=document.getElementById('chat'),form=document.getElementById('form'),input=document.getElementById('input');
+function add(text,kind){const d=document.createElement('div');d.className='msg '+kind;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+form.onsubmit=async e=>{e.preventDefault();const message=input.value.trim();if(!message)return;add(message,'user');input.value='';add('Processando...','bot');const loading=chat.lastChild;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message})});const data=await r.json();loading.remove();add(data.reply,'bot')}catch(err){loading.remove();add('Erro ao conectar ao servidor.','bot')}};
+</script></body></html>
