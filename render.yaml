@@ -1,8 +1,8 @@
 services:
   - type: web
-    name: hermes
+    name: open-ultron
     runtime: python
-    plan: starter
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
@@ -11,11 +11,9 @@ services:
         fromDatabase:
           name: ultron-db
           property: connectionString
-      - key: HERMES_API_KEY
-        sync: false
       - key: CORS_ORIGINS
         value: "*"
 
 databases:
   - name: ultron-db
-    plan: starter
+    plan: free
