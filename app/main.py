@@ -21,13 +21,13 @@ import app.plugins.builtin
 configure_logging()
 
 @asynccontextmanager
-async def lifespan(app:FastAPI):
+async def lifespan(app: FastAPI):
     init_db()
     yield
 
-app=FastAPI(title="ULTRON",version="3.0.0",lifespan=lifespan)
-origins=["*"] if settings.cors_origins=="*" else [x.strip() for x in settings.cors_origins.split(",") if x.strip()]
-app.add_middleware(CORSMiddleware,allow_origins=origins,allow_credentials=False,allow_methods=["*"],allow_headers=["*"])
-for router in (system_router,chat_router,memory_router,skills_router,voice_router,research_router,vision_router,files_router,automations_router,agents_router,plugins_router):
+app = FastAPI(title="HERMES", version="1.0.0", lifespan=lifespan)
+origins = ["*"] if settings.cors_origins == "*" else [x.strip() for x in settings.cors_origins.split(",") if x.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
+for router in (system_router, chat_router, memory_router, skills_router, voice_router, research_router, vision_router, files_router, automations_router, agents_router, plugins_router):
     app.include_router(router)
-app.mount("/",StaticFiles(directory="frontend",html=True),name="frontend")
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
